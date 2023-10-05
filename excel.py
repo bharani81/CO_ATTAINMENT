@@ -5,7 +5,7 @@ import os
 wb = load_workbook('14CS350_Data Structures and Algorithms.xlsx')
 
 test1 =wb['Test 1']
-print(test1.max_row)
+print(test1)
 
 test2 = wb['Test 2']
 print(test2)
@@ -19,6 +19,7 @@ def create_workbook():
     sheet.title = "overall"
     Wb_test.save('new_summary_data.xlsx')
 
+test_list =[test1,test2,test3]
 
 create_workbook()
 
@@ -56,14 +57,21 @@ def foreveryrow(test):
     
     new_sheet = load_workbook('new_summary_data.xlsx')
     new_wb = new_sheet['overall']
-    new_wb.insert_rows(test.max_row)
+    # new_wb.insert_rows(test.max_row)
     new_sheet.save('new_summary_data.xlsx')
     i=0
     for regno in range(5,test.max_row):
         new_wb.cell(row= regno-2, column= 1, value=test[regno][0].value)
     new_sheet.save('new_summary_data.xlsx')
 
-    c=2
+    c2=1
+    for col in new_wb[3]:
+        if col.value!=None:
+            c2=c2+1
+        else :
+            break
+    c=c2
+
     for keys in total_dict:
         new_wb.cell(row=1,column=c,value=keys)
         new_wb.cell(row=2,column=c,value=total_dict[keys])
@@ -71,14 +79,25 @@ def foreveryrow(test):
         c= c + 1
     new_sheet.save('new_summary_data.xlsx')
 
+    c1=1
+    for col in new_wb[3]:
+        if col.value!=None:
+            c1=c1+1
+        else :
+            break
+
     for rows in range(5,test.max_row):
         val_dict = create_sum(test,rows)
-        c=2
+        c=c1
         for keys in val_dict:
             new_wb.cell(row=rows-2,column=c,value=val_dict[keys])  
             new_wb.cell(row=rows-2,column=c+len(val_dict),value=round(val_dict[keys]/total_dict[keys],2)*100) 
             c=c+1 
     new_sheet.save('new_summary_data.xlsx')
+    return new_sheet
+
+# def calculate():
 
 
-foreveryrow(test3)
+for each_test in test_list:
+    foreveryrow(each_test)
