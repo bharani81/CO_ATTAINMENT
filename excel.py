@@ -11,17 +11,15 @@ no_co=0
 co_list=[]
  
 
-test1 =load_workbook('CAT1.xlsx').active
-print(test1)
+# test1 =load_workbook('CAT1.xlsx').active
+# print(test1)
 
-test2 = load_workbook('CAT2.xlsx').active
-print(test2)
+# test2 = load_workbook('CAT2.xlsx').active
+# print(test2)
 
-test3 =load_workbook('CAT3.xlsx').active
-print(test3)
+# test3 =load_workbook('CAT3.xlsx').active
+# print(test3)
 
-for i in range(1,test2.max_column-1):
-    print(test2[1][i].value,end=' ')
 
 
 def find_max_rows(test):
@@ -46,7 +44,7 @@ def create_workbook(title,name):
     sheet.title = title
     Wb_test.save(name)
 
-test_list =[test1,test2,test3]
+
 
 create_workbook('overall','new_summary_data.xlsx')
 
@@ -68,6 +66,7 @@ def create_tot(test,row):
             dict[cos.value]=0
         dict[cos.value]+= int(test[4][i].value) if test[4][i].value != None else 0
         i=i+1
+    return dict
 
 def create_sum(test,r1):
     dict={}
@@ -80,10 +79,25 @@ def create_sum(test,r1):
             dict[cos.value]=0
         dict[cos.value]+= int(test[r1][i].value) if test[r1][i].value != None else 0
         i=i+1
+    return dict
+
+def create_tot_sum(test,row_given):
+    dict = {}
+    i=1
+    row = test[3][1:]
+    for cos in range(0,len(row)+1):
+        val = row[cos].value
+        if val == None:
+            return dict
+        if val not in dict :
+            dict[val]=0  
+        if test[row_given][cos+1].value is not None and test[row_given][cos+1].value >=0:
+            dict[val] += test[4][cos+1].value
+    return dict
 
 
 def foreveryrow(test,max_row):
-    total_dict = create_tot(test)
+    total_dict = create_tot(test,1)
     temp_list = list(total_dict.keys())
     choice_co = temp_list[-1]
     total_dict[choice_co] = total_dict[choice_co]/2
@@ -121,18 +135,22 @@ def foreveryrow(test,max_row):
 
     for rows in range(5,max_row):
         val_dict = create_sum(test,rows)
+        eval_dict = create_tot_sum(test,rows)
         c=c1
         for keys in val_dict:
             new_wb.cell(row=rows-2,column=c,value=val_dict[keys])  
-            new_wb.cell(row=rows-2,column=c+len(val_dict),value=round(val_dict[keys]/total_dict[keys],2)*100) 
-            c=c+1 
+            if eval_dict[keys] ==0:
+                new_wb.cell(row=rows-2,column= c + len(val_dict),value =0)
+            else:
+                new_wb.cell(row=rows-2,column=c+len(val_dict),value=round(val_dict[keys]/eval_dict[keys] ,2)*100) 
+            c=c+1
     new_sheet.save('new_summary_data.xlsx')
     return new_sheet
 
-def calculate_overall():
-    max_row = test1.max_row
-    for each_test in test_list:
-        foreveryrow(each_test,max_row)
+# def calculate_overall():
+    
+#     for each_test in test_list:
+#         foreveryrow(each_test,max_row)
 
 def find_cos(wb,row):
     new_dict={}
@@ -164,12 +182,12 @@ def find_max_pair(percentage_list):
 def calc_assignment():
     return 100
 
-def compute_assignment():
+def compute_assignment(test):
     return 0
 
 def calc_without_assignment():
 
-    calculate_overall()
+    # calculate_overall()
     new_sheet = load_workbook('new_summary_data.xlsx')
     new_wb = new_sheet['overall']
 
@@ -208,14 +226,10 @@ def calc_without_assignment():
 # def process_assignment():
 
 
-def add_survey_terminal():
-    terminal=load_workbook('terminal.xlsx')
-    terminal_sheet = terminal.active
+def add_survey_terminal(survey_sheet,terminal_sheet):
+
     global total_students 
     total_students = find_max_rows(terminal_sheet) -2
-
-    survey = load_workbook('Survey.xlsx')
-    survey_sheet= survey.active
 
     new_final = load_workbook('final_summary.xlsx')
     new_fl=new_final['final']
@@ -280,21 +294,22 @@ def count_particaular_range(perc,co,test):
             count = count+1
     return count
 
-def calc_final_percentage():
+def calc_final_percentage(given_percentage,attainment):
     final_summary_dict ={}
+    no_students={}
+    actual_att={}
+    outcome_att={}
     new_final = load_workbook('final_summary.xlsx')
     new_fl = new_final.active
-    given_percentage = float(input('Enter percentage : '))
-    attainment = float(input('Enter Attainment value : '))
     first_co = 3*no_co
     print(co_list)
     for i in range(0,no_co):
         final_summary_dict[co_list[i]] =[]
-        actual_value = round(count_particaular_range(given_percentage,first_co+i,new_fl)/total_students,3)
-        outcome_value = round(actual_value/attainment,3)
-        print(f'{co_list[i]} : actual attainment : {actual_value}  outcome attainment : {outcome_value}')
-
-
-calc_without_assignment()
-add_survey_terminal()
-calc_final_percentage()
+        no_students[co_list[i]]=count_particaular_range(given_percentage,first_co+i,new_fl)
+        actual_att[co_list[i]]= round(no_students[co_list[i]]/total_students,3)
+        outcome_att[co_list[i]] = round(actual_att[co_list[i]]/attainment,3)
+        print(f'{co_list[i]} : actual attainment : {actual_att[co_list[i]]}  outcome attainment : {outcome_att[co_list[i]]}')
+    return [co_list,no_students,actual_att,outcome_att]
+# calc_without_assignment()
+# add_survey_terminal()
+# calc_final_percentage()
